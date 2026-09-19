@@ -325,16 +325,20 @@ Delivered To: ${toEmail}
     throw new Error('No email provider configured. Set SMTP_HOST, SMTP_PORT, SMTP_USERNAME and SMTP_PASSWORD (or an API provider key).');
 
   } catch (deliveryError) {
-    // Log full details server-side; expose only a safe diagnostic code to the client
+    // Log full details server-side; expose only safe diagnostic info to the client
     console.error('Email transmission failed:', deliveryError);
-    const diagCode = deliveryError && (deliveryError.code || deliveryError.responseCode) || 'SEND_FAILED';
+    const diagCode = (deliveryError && (deliveryError.code || deliveryError.responseCode)) || 'SEND_FAILED';
+    // SMTP server response text (e.g. "535 5.7.8 Authentication Credentials Invalid")
+    // helps pinpoint auth issues without exposing any secrets.
+    const smtpResponse = (deliveryError && deliveryError.response) || '';
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
         error: 'We couldn\'t send your enquiry right now. Please try again or contact our team directly.',
-        diag: String(diagCode)
+        diag: String(diagCode),
+        smtp: String(smtpResponse).slice(0, 120)
       })
     };
   }
