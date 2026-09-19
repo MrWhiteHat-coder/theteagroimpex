@@ -2,42 +2,49 @@
   publish = "."
   functions = "netlify/functions"
 
-# ---- Block server/config files from public access (SEO bots & snoopers) ----
-# Redirects run before static serving, so these now return 404
+# ---- Block server/config files from public access ----
+# force = true is required: without it Netlify serves the real file if it exists
 [[redirects]]
   from = "/server.js"
-  to = "/404"
+  to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/generate-sitemap.js"
-  to = "/404"
+  to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/package.json"
-  to = "/404"
+  to = "/404.html"
   status = 404
+  force = true
 
 [[redirects]]
   from = "/package-lock.json"
-  to = "/404"
+  to = "/404.html"
   status = 404
-
-[[redirects]]
-  from = "/.env"
-  to = "/404"
-  status = 404
-
-[[redirects]]
-  from = "/.env*"
-  to = "/404"
-  status = 404
+  force = true
 
 [[redirects]]
   from = "/netlify.toml"
-  to = "/404"
+  to = "/404.html"
   status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env*"
+  to = "/404.html"
+  status = 404
+  force = true
 
 # Enquiry API
 [[redirects]]
