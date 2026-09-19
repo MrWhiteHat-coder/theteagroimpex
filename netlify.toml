@@ -1,13 +1,28 @@
-﻿[build]
+[build]
   publish = "."
   functions = "netlify/functions"
 
+# Enquiry API
 [[redirects]]
   from = "/api/contact"
   to = "/.netlify/functions/contact"
   status = 200
 
+# Catalogue page
 [[redirects]]
   from = "/products"
   to = "/products.html"
+  status = 200
+
+# Individual product detail pages: /products/<slug> -> product.html shell
+# (title/meta/schema are then set dynamically by product-detail.js)
+[[redirects]]
+  from = "/products/:slug"
+  to = "/product.html"
+  status = 200
+
+# Force trailing-slash variants like /products/basmati-rice/ to resolve too
+[[redirects]]
+  from = "/products/:slug/"
+  to = "/product.html"
   status = 200

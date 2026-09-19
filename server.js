@@ -15,7 +15,8 @@ const MIME_TYPES = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.webp': 'image/webp'
 };
 
 const server = http.createServer(async (req, res) => {
@@ -50,23 +51,30 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Handle static files
+  // Handle static files with clean routes
   let safePath = pathname === '/' ? '/index.html' : pathname;
   if (safePath === '/products') safePath = '/products.html';
+  // /products/<slug> serves the shared product detail shell; JS fills in data by slug
+  else if (/^\/products\/[a-z0-9-]+\/?$/i.test(safePath)) safePath = '/product.html';
 
   const filePath = path.join(PUBLIC_DIR, safePath);
 
-  // Security check: ensure path is within PUBLIC_DIR
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  // Security check: ensure path is within PUBLIC_DIR (resolve handles ../ traversal)
+  if (!filePath.startsWith(PUBLIC_DIR + path.sep)) {
     res.writeHead(403, { 'Content-Type': 'text/plain' });
     res.end('Forbidden');
     return;
   }
 
+  // Basic security headers for every response
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
       res.writeHead(404, { 'Content-Type': 'text/html' });
-      res.end('<h1>404 Not Found</h1>');
+      res.end('<h1>404 Not Found</h1><p><a href="/">Back to home</a></p>');
       return;
     }
 

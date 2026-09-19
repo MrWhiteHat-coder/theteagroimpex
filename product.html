@@ -4,23 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#123d2c" />
-  <title>Agro Products Catalogue | Fruits, Vegetables, Rice, Pulses & Spices Exporter — Thete Agro Impex</title>
-  <meta name="description" content="Browse Thete Agro Impex's export catalogue: fresh fruits, farm vegetables, basmati and non-basmati rice, pulses & dals, spices and other agro products from Nashik, Maharashtra, India." />
-  <link rel="canonical" href="https://theteagroimpex.in/products" />
-  <link rel="icon" type="image/png" href="./img/logow.png" />
+  <title>Product | Thete Agro Impex</title>
+  <meta name="description" content="Export product details from Thete Agro Impex — a Nashik-based agro products exporter in Maharashtra, India." />
+  <link rel="canonical" href="https://theteagroimpex.in/products/" />
+  <link rel="icon" type="image/png" href="/img/logow.png" />
 
-  <meta property="og:type" content="website" />
+  <meta property="og:type" content="product" />
   <meta property="og:site_name" content="Thete Agro Impex" />
-  <meta property="og:title" content="Agro Products Catalogue | Thete Agro Impex" />
-  <meta property="og:description" content="Fresh fruits, vegetables, rice, pulses & dals, spices and other agro products — sourced in Maharashtra for international buyers." />
-  <meta property="og:url" content="https://theteagroimpex.in/products" />
+  <meta property="og:title" content="Product | Thete Agro Impex" />
+  <meta property="og:description" content="Export product details from Thete Agro Impex." />
+  <meta property="og:url" content="https://theteagroimpex.in/products/" />
   <meta property="og:image" content="https://theteagroimpex.in/img/logow.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Product | Thete Agro Impex" />
+  <meta name="twitter:description" content="Export product details from Thete Agro Impex." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://images.unsplash.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -29,7 +32,7 @@
   <header class="site-header" id="header">
     <div class="container nav-wrap">
       <a href="index.html#home" class="logo" aria-label="Thete Agro Impex home">
-        <span class="logo-mark"><img src="./img/logo.png" alt="Thete Agro Impex logo" class="logo-img" /></span>
+        <span class="logo-mark"><img src="/img/logo.png" alt="Thete Agro Impex logo" class="logo-img" /></span>
         <span class="logo-wordmark">Thete <b>Agro Impex</b></span>
       </a>
 
@@ -48,75 +51,35 @@
   </header>
 
   <main id="main-content">
-    <section class="catalog-hero">
+    <section class="catalog-hero product-hero">
       <div class="container">
-        <nav class="hero-breadcrumb" aria-label="Breadcrumb">
-          <a href="index.html">Home</a> <span>/</span> <span aria-current="page">Products</span>
+        <nav class="hero-breadcrumb" id="productBreadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">Home</a> <span>/</span> <a href="products.html">Products</a>
         </nav>
-        <div class="catalog-hero-grid">
-          <div>
-            <div class="eyebrow eyebrow-light"><span class="eyebrow-dot"></span> Indian origin · Export Quality</div>
-            <h1>Products</h1>
-            <p class="catalog-hero-sub">Explore our range of Indian agricultural products.</p>
-          </div>
-          <div class="catalog-hero-intro">
-            <p>From the fertile belts of Maharashtra to destinations across the globe, we supply graded, export-ready produce with clear specifications and dependable packing.</p>
-            <a href="index.html#contact" class="button button-outline" style="margin-top: 20px;">Request custom shipment <span>↗</span></a>
-          </div>
+      </div>
+    </section>
+
+    <section class="section product-detail-section">
+      <div class="container" id="productDetailRoot">
+        <!-- Filled by product-detail.js -->
+      </div>
+
+      <div class="container">
+        <div class="empty-state" id="productNotFound" hidden>
+          <div class="empty-icon" aria-hidden="true">🌾</div>
+          <h3>Product not found</h3>
+          <p>The product you're looking for isn't in our current catalogue. Browse the full range instead.</p>
+          <a class="button button-lime button-sm" href="products.html">View all products</a>
         </div>
       </div>
     </section>
 
-    <section class="section catalog-section">
+    <section class="section products-section" id="relatedSection" hidden>
       <div class="container">
-        <div class="catalog-toolbar">
-          <div class="catalog-search-box">
-            <label for="productSearch" class="visually-hidden">Search products by name, category, or description</label>
-            <div class="search-input-wrap">
-              <span class="search-icon" aria-hidden="true">🔍</span>
-              <input
-                type="search"
-                id="productSearch"
-                class="catalog-search-input"
-                placeholder="Search products..."
-                aria-label="Search products"
-                autocomplete="off"
-              />
-              <button type="button" id="clearSearchBtn" class="clear-search-btn" aria-label="Clear search" hidden>&times;</button>
-            </div>
-          </div>
-
-          <div class="catalog-filters-wrap">
-            <span class="filters-label">Categories:</span>
-            <div class="category-filters" id="categoryFilters" role="group" aria-label="Filter products by category">
-              <!-- Category chips rendered by catalog.js -->
-            </div>
-          </div>
+        <div class="section-heading-row">
+          <div><div class="section-kicker"><span>Related</span><span class="kicker-line"></span><span>Same category</span></div><h2>Explore related<br /><em>products.</em></h2></div>
         </div>
-
-        <div class="catalog-meta-row">
-          <div class="catalog-meta" id="catalogMeta" aria-live="polite"></div>
-        </div>
-
-        <div class="product-grid catalog-grid" id="productsGrid">
-          <!-- Product cards rendered by catalog.js -->
-        </div>
-
-        <div class="empty-state" id="emptyState" hidden>
-          <div class="empty-icon" aria-hidden="true">🌾</div>
-          <h3>No products found</h3>
-          <p>We couldn't find any products matching your current search or category filter. Try clearing your search query or selecting another category.</p>
-          <button type="button" class="button button-lime button-sm" id="resetFiltersBtn">Reset search &amp; filters</button>
-        </div>
-
-        <div class="catalog-custom-banner">
-          <div>
-            <div class="section-kicker"><span>Custom Requirements</span><span class="kicker-line"></span><span>Bulk Agro Sourcing</span></div>
-            <h3>Looking for specific crop varieties or custom bulk packaging?</h3>
-            <p>We collaborate directly with growers, packhouses and processors across Maharashtra to meet buyer-specific grade, moisture and shipment specifications.</p>
-          </div>
-          <a href="index.html#contact" class="button button-lime">Talk to our export desk <span>↗</span></a>
-        </div>
+        <div class="product-grid catalog-grid" id="relatedGrid"></div>
       </div>
     </section>
   </main>
@@ -125,7 +88,7 @@
     <div class="container footer-main">
       <div>
         <a href="index.html#home" class="logo logo-footer">
-          <span class="logo-mark"><img src="./img/logow.png" alt="Thete Agro Impex logo" class="logo-img" /></span>
+          <span class="logo-mark"><img src="/img/logow.png" alt="Thete Agro Impex logo" class="logo-img" /></span>
           <span class="logo-wordmark">Thete <b>Agro Impex</b></span>
         </a>
         <p class="footer-tagline">From Indian soil<br />to global tables.</p>
@@ -169,12 +132,60 @@
     </div>
   </footer>
 
+  <!-- Enquiry modal: product is auto-filled based on the page being viewed -->
+  <div class="modal-backdrop" id="enquiryModal" role="dialog" aria-modal="true" aria-labelledby="enquiryModalTitle" hidden>
+    <div class="modal-panel">
+      <button type="button" class="modal-close" id="enquiryModalClose" aria-label="Close enquiry form">&times;</button>
+      <div class="form-heading">
+        <span id="enquiryModalTitle">Enquire Now</span>
+        <span>We reply within 1–2 business days</span>
+      </div>
+      <form class="modal-form" id="modalForm" novalidate>
+        <input type="hidden" name="bot-field" tabindex="-1" autocomplete="off" />
+        <div class="form-row">
+          <label for="m-name"><span>Name *</span>
+            <input type="text" id="m-name" name="name" required minlength="2" placeholder="Your full name" autocomplete="name" />
+          </label>
+          <label for="m-company"><span>Company Name</span>
+            <input type="text" id="m-company" name="company" placeholder="Your company" autocomplete="organization" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label for="m-email"><span>Email *</span>
+            <input type="email" id="m-email" name="email" required placeholder="you@company.com" autocomplete="email" />
+          </label>
+          <label for="m-phone"><span>Phone</span>
+            <input type="tel" id="m-phone" name="phone" placeholder="+91 ..." autocomplete="tel" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label for="m-product"><span>Product</span>
+            <input type="text" id="m-product" name="product" readonly />
+          </label>
+          <label for="m-requirement"><span>Requirement / Quantity</span>
+            <input type="text" id="m-requirement" name="requirement" placeholder="e.g. 20 MT" />
+          </label>
+        </div>
+        <label for="m-message"><span>Message</span>
+          <textarea id="m-message" name="message" rows="3" placeholder="Please provide export pricing and availability."></textarea>
+        </label>
+        <button type="submit" class="button button-lime button-submit" id="modalSubmitBtn">
+          <span class="btn-text">Send enquiry</span> <span class="btn-arrow" aria-hidden="true">↗</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sticky mobile enquiry CTA -->
+  <a href="#enquire" class="mobile-cta" id="mobileEnquiryCta">Enquire Now</a>
+
   <a href="https://wa.me/917378781899?text=Hi%20Thete%20Agro%20Impex%2C%20I%20have%20an%20enquiry" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11 11 0 0 0 3.2 17.4L2 22l4.7-1.2A11 11 0 1 0 20.5 3.5Zm-8.4 17a9 9 0 0 1-4.6-1.3l-.3-.2-2.8.7.8-2.7-.2-.3A9 9 0 1 1 12.1 20.5Zm5-6.7c-.3-.1-1.6-.8-1.9-.9s-.5-.1-.7.1-.8.9-.9 1.1-.3.2-.6.1a7.4 7.4 0 0 1-2.2-1.3 8 8 0 0 1-1.5-1.9c-.2-.3 0-.5.1-.6s.3-.3.4-.5.1-.3 0-.5-.7-1.7-1-2.3-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4a3.3 3.3 0 0 0-1 2.4 5.7 5.7 0 0 0 1.2 3 13 13 0 0 0 5 4.4c.7.3 1.2.4 1.7.5a4 4 0 0 0 1.8-.1 3 3 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.2-.3-.2-.6-.3Z" /></svg></a>
   <button class="top-btn" id="topBtn" aria-label="Back to top">↑</button>
   <div class="toast" id="toast" role="status" aria-live="polite"><span class="toast-icon">✓</span><span id="toastMsg">Thanks — we'll be in touch soon.</span></div>
 
-  <script src="products-data.js"></script>
-  <script src="catalog.js"></script>
-  <script src="script.js"></script>
+  <script src="/products-data.js"></script>
+  <script src="/catalog.js"></script>
+  <script src="/product-detail.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>

@@ -1,5 +1,15 @@
 const nodemailer = require('nodemailer');
 
+/*
+  Serverless enquiry handler (Netlify Function).
+  All enquiries are delivered to the Titan Mail mailbox configured in
+  CONTACT_RECEIVER_EMAIL (default: support@theteagroimpex.in).
+  SMTP credentials live ONLY in environment variables — never in the frontend.
+  Required env vars for SMTP delivery:
+    SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+  Optional: CONTACT_RECEIVER_EMAIL, FROM_EMAIL, RESEND_API_KEY / BREVO_API_KEY / SENDGRID_API_KEY
+*/
+
 function escapeHtml(str) {
   if (!str) return '';
   return String(str)
@@ -9,6 +19,8 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+
+const CONTACT_RECEIVER_DEFAULT = 'support@theteagroimpex.in';
 
 exports.handler = async (event) => {
   const headers = {
@@ -47,7 +59,7 @@ exports.handler = async (event) => {
     };
   }
 
-  // Honeypot spam check
+  // Honeypot spam check — pretend success so bots learn nothing.
   if (data['bot-field'] || data['botField'] || data['_gotcha']) {
     return {
       statusCode: 200,
@@ -57,9 +69,13 @@ exports.handler = async (event) => {
   }
 
   const name = (data.name || '').trim();
+  const company = (data.company || '').trim();
   const email = (data.email || '').trim();
+  const phone = (data.phone || '').trim();
+  const product = (data.product || '').trim();
   const requirement = (data.requirement || '').trim();
   const message = (data.message || '').trim();
+  const sourcePage = (data.sourcePage || '').trim();
 
   if (!name || name.length < 2) {
     return {
@@ -74,27 +90,43 @@ exports.handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Please enter a valid work email address.' })
+      body: JSON.stringify({ success: false, error: 'Please enter a valid email address.' })
     };
   }
 
-  const toEmail = process.env.CONTACT_RECEIVER_EMAIL || 'deepakramoorthy@gmail.com';
-  const subject = `New Agro Export Enquiry: ${name}${requirement ? ' - ' + requirement : ''}`;
+  const toEmail = process.env.CONTACT_RECEIVER_EMAIL || CONTACT_RECEIVER_DEFAULT;
+  const subject = product
+    ? `New Product Enquiry - ${product}`
+    : `New Website Enquiry - ${name}`;
   const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
   const textBody = `
-New enquiry received from theteagroimpex.in website:
+Thete Agro Impex
+New Website Enquiry
 --------------------------------------------------
-Sender Name: ${name}
-Work Email: ${email}
-Produce / Requirement: ${requirement || 'General enquiry'}
+Customer Name: ${name}
+Company Name: ${company || '-'}
+Email: ${email}
+Phone: ${phone || '-'}
+Product: ${product || 'General enquiry'}
+Requirement / Quantity: ${requirement || '-'}
 Message:
-${message || 'No additional message provided.'}
+${message || '-'}
 
-Received: ${timestamp} IST
-Recipient: ${toEmail}
+Source Page: ${sourcePage || '-'}
+Submitted At: ${timestamp} IST
+Delivered To: ${toEmail}
 --------------------------------------------------
 `.trim();
+
+  const rows = [
+    ['Customer Name', name],
+    ['Company Name', company || '-'],
+    ['Email', `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>`],
+    ['Phone', phone ? `<a href="tel:${escapeHtml(phone)}">${escapeHtml(phone)}</a>` : '-'],
+    ['Product', escapeHtml(product || 'General enquiry')],
+    ['Requirement / Quantity', escapeHtml(requirement || '-')]
+  ];
 
   const htmlBody = `
 <!DOCTYPE html>
@@ -103,46 +135,42 @@ Recipient: ${toEmail}
   <meta charset="utf-8">
   <style>
     body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f4f5eb; margin: 0; padding: 24px; color: #16291f; }
-    .wrapper { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #dce3d5; overflow: hidden; box-shadow: 0 10px 30px rgba(18,61,44,0.06); }
-    .header { background: #123d2c; padding: 28px; color: #f4f5eb; }
+    .wrapper { max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 16px; border: 1px solid #dce3d5; overflow: hidden; box-shadow: 0 10px 30px rgba(18,61,44,0.06); }
+    .header { background: #123d2c; padding: 26px 28px; color: #f4f5eb; }
     .header .eyebrow { color: #b8d57a; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 8px; }
-    .header h1 { margin: 0; font-size: 24px; font-weight: 600; color: #d9ed9d; }
-    .content { padding: 32px 28px; }
-    .row { margin-bottom: 22px; }
-    .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #68776d; display: block; margin-bottom: 6px; }
-    .value { font-size: 15px; font-weight: 500; color: #123d2c; }
-    .value a { color: #1f5940; text-decoration: underline; font-weight: 600; }
-    .box { background: #fbfcf7; border: 1px solid #dce3d5; border-radius: 10px; padding: 16px; margin-top: 6px; font-size: 14px; line-height: 1.6; color: #16291f; white-space: pre-wrap; }
-    .footer { background: #f4f5eb; padding: 18px 28px; font-size: 11px; color: #68776d; border-top: 1px solid #dce3d5; display: flex; justify-content: space-between; }
+    .header h1 { margin: 0; font-size: 23px; font-weight: 600; color: #d9ed9d; }
+    .product-banner { background: #1f5940; color: #ffffff; font-size: 15px; font-weight: 600; padding: 14px 28px; }
+    .content { padding: 30px 28px; }
+    .row { border-bottom: 1px solid #eef1e6; margin-bottom: 16px; padding-bottom: 14px; }
+    .row:last-child { border-bottom: 0; }
+    .label { color: #68776d; display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; margin-bottom: 5px; text-transform: uppercase; }
+    .value { color: #123d2c; font-size: 15px; font-weight: 500; }
+    .value a { color: #1f5940; font-weight: 600; text-decoration: underline; }
+    .box { background: #fbfcf7; border: 1px solid #dce3d5; border-radius: 10px; color: #16291f; font-size: 14px; line-height: 1.6; margin-top: 6px; padding: 16px; white-space: pre-wrap; }
+    .footer { background: #f4f5eb; border-top: 1px solid #dce3d5; color: #68776d; display: flex; font-size: 11px; justify-content: space-between; padding: 16px 28px; }
   </style>
 </head>
 <body>
   <div class="wrapper">
     <div class="header">
-      <div class="eyebrow">Thete Agro Impex · Sourcing Desk</div>
-      <h1>New Agro Export Enquiry</h1>
+      <div class="eyebrow">Thete Agro Impex · Export Desk</div>
+      <h1>New Website Enquiry</h1>
     </div>
+    ${product ? `<div class="product-banner">Product: ${escapeHtml(product)}</div>` : ''}
     <div class="content">
+      ${rows.map(([label, value]) => `
       <div class="row">
-        <span class="label">Sender Name</span>
-        <div class="value">${escapeHtml(name)}</div>
-      </div>
-      <div class="row">
-        <span class="label">Work Email</span>
-        <div class="value"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></div>
-      </div>
-      <div class="row">
-        <span class="label">Produce / Requirement</span>
-        <div class="value">${escapeHtml(requirement || 'General enquiry')}</div>
-      </div>
+        <span class="label">${label}</span>
+        <div class="value">${value}</div>
+      </div>`).join('')}
       <div class="row">
         <span class="label">Message</span>
-        <div class="box">${escapeHtml(message || 'No additional message provided.')}</div>
+        <div class="box">${escapeHtml(message || '-')}</div>
       </div>
     </div>
     <div class="footer">
-      <span>Time: ${timestamp} IST</span>
-      <span>Source: theteagroimpex.in</span>
+      <span>Source: ${escapeHtml(sourcePage || 'theteagroimpex.in')}</span>
+      <span>${timestamp} IST</span>
     </div>
   </div>
 </body>
@@ -150,9 +178,9 @@ Recipient: ${toEmail}
 `.trim();
 
   try {
-    // 1. RESEND API (Recommended for modern Netlify setups)
+    // 1. RESEND API
     if (process.env.RESEND_API_KEY) {
-      const fromEmail = process.env.FROM_EMAIL || 'Thete Agro Impex <enquiry@theteagroimpex.in>';
+      const fromEmail = process.env.FROM_EMAIL || `Thete Agro Impex <enquiry@theteagroimpex.in>`;
       const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -181,7 +209,7 @@ Recipient: ${toEmail}
         headers,
         body: JSON.stringify({
           success: true,
-          message: 'Thank you! Your enquiry has been sent to our team.',
+          message: 'Thank you. Your enquiry has been received. Our team will get back to you shortly.',
           id: resData.id
         })
       };
@@ -196,8 +224,8 @@ Recipient: ${toEmail}
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          sender: { name: 'Thete Agro Impex Website', email: process.env.FROM_EMAIL || 'info@theteagroimpex.com' },
-          to: [{ email: toEmail, name: 'Thete Agro Impex Team' }],
+          sender: { name: 'Thete Agro Impex Website', email: process.env.FROM_EMAIL || 'support@theteagroimpex.in' },
+          to: [{ email: toEmail, name: 'Thete Agro Impex Export Desk' }],
           replyTo: { email: email, name: name },
           subject: subject,
           htmlContent: htmlBody,
@@ -216,7 +244,7 @@ Recipient: ${toEmail}
         headers,
         body: JSON.stringify({
           success: true,
-          message: 'Thank you! Your enquiry has been sent to our team.'
+          message: 'Thank you. Your enquiry has been received. Our team will get back to you shortly.'
         })
       };
     }
@@ -231,7 +259,7 @@ Recipient: ${toEmail}
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: toEmail }] }],
-          from: { email: process.env.FROM_EMAIL || 'info@theteagroimpex.com', name: 'Thete Agro Impex' },
+          from: { email: process.env.FROM_EMAIL || 'support@theteagroimpex.in', name: 'Thete Agro Impex' },
           reply_to: { email: email, name: name },
           subject: subject,
           content: [
@@ -252,28 +280,31 @@ Recipient: ${toEmail}
         headers,
         body: JSON.stringify({
           success: true,
-          message: 'Thank you! Your enquiry has been sent to our team.'
+          message: 'Thank you. Your enquiry has been received. Our team will get back to you shortly.'
         })
       };
     }
 
-    // 4. SMTP / NODEMAILER (Works with Gmail, Zoho, Outlook, Hostinger, cPanel webmail, etc.)
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+    // 4. SMTP / NODEMAILER — Titan Mail (GoDaddy), Gmail, Zoho, Outlook etc.
+    //    Preferred env names: SMTP_USERNAME / SMTP_PASSWORD (SMTP_USER / SMTP_PASS kept as fallbacks)
+    const smtpUser = process.env.SMTP_USERNAME || process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
+    if (process.env.SMTP_HOST && smtpUser && smtpPass) {
       const port = Number(process.env.SMTP_PORT) || 465;
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: port,
         secure: port === 465,
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
+          user: smtpUser,
+          pass: smtpPass
         }
       });
 
       const info = await transporter.sendMail({
-        from: `"${name} (Website Enquiry)" <${process.env.SMTP_USER}>`,
+        from: `"Thete Agro Impex Website" <${smtpUser}>`,
         to: toEmail,
-        replyTo: email,
+        replyTo: company ? `${name} (${company}) <${email}>` : `${name} <${email}>`,
         subject: subject,
         text: textBody,
         html: htmlBody
@@ -285,13 +316,13 @@ Recipient: ${toEmail}
         headers,
         body: JSON.stringify({
           success: true,
-          message: 'Thank you! Your enquiry has been sent to our team.'
+          message: 'Thank you. Your enquiry has been received. Our team will get back to you shortly.'
         })
       };
     }
 
-    // No email provider configured. Fail clearly instead of silently using a test mailbox.
-    throw new Error('SMTP is not configured. Please set SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASS in .env.');
+    // No email provider configured. Fail clearly instead of silently dropping enquiries.
+    throw new Error('No email provider configured. Set SMTP_HOST, SMTP_PORT, SMTP_USERNAME and SMTP_PASSWORD (or an API provider key).');
 
   } catch (deliveryError) {
     console.error('Email transmission failed:', deliveryError);
@@ -300,7 +331,7 @@ Recipient: ${toEmail}
       headers,
       body: JSON.stringify({
         success: false,
-        error: 'Unable to send enquiry at this time. Please email info@theteagroimpex.com directly.'
+        error: 'We couldn\'t send your enquiry right now. Please try again or contact our team directly.'
       })
     };
   }

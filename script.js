@@ -1,3 +1,4 @@
+/* Shared site behaviour: navigation, scroll effects, enquiry forms. */
 const menuBtn = document.getElementById('menuBtn');
 const nav = document.getElementById('nav');
 const header = document.getElementById('header');
@@ -36,6 +37,7 @@ updateScrollState();
 
 topBtn?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
+/* Counters */
 const counters = document.querySelectorAll('[data-count]');
 if (counters.length > 0) {
   const counterObserver = new IntersectionObserver((entries, observer) => {
@@ -60,23 +62,8 @@ if (counters.length > 0) {
   counters.forEach((counter) => counterObserver.observe(counter));
 }
 
-// Nav link active observer for hash links on sections
-const sections = document.querySelectorAll('main section[id]');
-const navHashLinks = document.querySelectorAll('.nav a[href^="#"]');
-if (sections.length > 0 && navHashLinks.length > 0) {
-  const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      navHashLinks.forEach((link) => {
-        link.classList.toggle('active', link.hash === `#${entry.target.id}`);
-      });
-    });
-  }, { rootMargin: '-35% 0px -60% 0px' });
-  sections.forEach((section) => sectionObserver.observe(section));
-}
-
-// Scroll reveal observer
-const revealItems = document.querySelectorAll('.product-card, .product-more, .process-step, .quote-grid, .contact-form, .catalog-card');
+/* Scroll reveal */
+const revealItems = document.querySelectorAll('.product-card, .product-more, .process-step, .quote-grid, .contact-form, .catalog-card, .contact-card');
 if (revealItems.length > 0) {
   const revealObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
@@ -91,7 +78,7 @@ if (revealItems.length > 0) {
   });
 }
 
-// Toast notification helper
+/* Toast */
 const toast = document.getElementById('toast');
 const toastMessage = document.getElementById('toastMsg');
 const toastIcon = toast?.querySelector('.toast-icon');
@@ -100,129 +87,169 @@ let toastTimer;
 function showToast(message, isError = false) {
   if (!toast || !toastMessage) return;
   toastMessage.textContent = message;
-  if (toastIcon) {
-    toastIcon.textContent = isError ? '!' : '✓';
-  }
+  if (toastIcon) toastIcon.textContent = isError ? '!' : '✓';
   toast.classList.toggle('toast-error', isError);
   toast.classList.add('show');
   window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => {
-    toast.classList.remove('show');
-  }, 5000);
+  toastTimer = window.setTimeout(() => toast.classList.remove('show'), 6000);
 }
 
-// Prefill requirement field from URL or card clicks
+const SUCCESS_MESSAGE = 'Thank you. Your enquiry has been received. Our team will get back to you shortly.';
+const ERROR_MESSAGE = "We couldn't send your enquiry right now. Please try again or contact our team directly.";
+
+/* ---- Enquiry submission (shared by home form and product modal) ---- */
+async function submitEnquiry(form, submitBtn, onSuccess) {
+  const nameInput = form.querySelector('input[name="name"]');
+  const emailInput = form.querySelector('input[name="email"]');
+  const nameVal = nameInput ? nameInput.value.trim() : '';
+  const emailVal = emailInput ? emailInput.value.trim() : '';
+
+  if (!nameVal) {
+    showToast('Please enter your name.', true);
+    nameInput?.focus();
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailVal || !emailRegex.test(emailVal)) {
+    showToast('Please enter a valid email address.', true);
+    emailInput?.focus();
+    return;
+  }
+
+  if (submitBtn) {
+    if (submitBtn.disabled) return; // duplicate submission guard
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Sending enquiry...</span> <span class="spinner" aria-hidden="true">⏳</span>';
+  }
+
+  const payload = {
+    name: nameVal,
+    company: form.querySelector('input[name="company"]')?.value.trim() || '',
+    email: emailVal,
+    phone: form.querySelector('input[name="phone"]')?.value.trim() || '',
+    product: form.querySelector('input[name="product"]')?.value.trim() || '',
+    requirement: form.querySelector('input[name="requirement"]')?.value.trim() || '',
+    message: form.querySelector('textarea[name="message"]')?.value.trim() || '',
+    'bot-field': form.querySelector('input[name="bot-field"]')?.value || '',
+    sourcePage: window.location.href
+  };
+
+  const send = (url) => fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  try {
+    let response;
+    try {
+      response = await send('/api/contact');
+    } catch (fetchErr) {
+      response = await send('/.netlify/functions/contact');
+    }
+    if (response && response.status === 404) {
+      response = await send('/.netlify/functions/contact');
+    }
+
+    const resData = await response.json().catch(() => null);
+
+    if (response.ok && resData && resData.success) {
+      showToast(resData.message || SUCCESS_MESSAGE, false);
+      form.reset();
+      if (typeof onSuccess === 'function') onSuccess();
+    } else {
+      const errorMsg = resData && resData.error ? resData.error : ERROR_MESSAGE;
+      showToast(errorMsg, true);
+    }
+  } catch (err) {
+    console.error('Contact form submission error:', err);
+    showToast(ERROR_MESSAGE, true);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<span class="btn-text">Send enquiry</span> <span class="btn-arrow" aria-hidden="true">↗</span>';
+    }
+  }
+}
+
+/* ---- Home / contact page form ---- */
 const form = document.getElementById('contactForm');
 const requirementInput = form?.querySelector('input[name="requirement"]');
-const nameInput = form?.querySelector('input[name="name"]');
-const emailInput = form?.querySelector('input[name="email"]');
+const productInput = form?.querySelector('input[name="product"]');
 
-if (form && requirementInput) {
+if (form) {
   const urlParams = new URLSearchParams(window.location.search);
   const requestedProduct = urlParams.get('product');
-  if (requestedProduct) {
-    requirementInput.value = `Enquiry for ${requestedProduct}`;
-  }
+  if (requestedProduct && productInput) productInput.value = requestedProduct;
 
   document.querySelectorAll('a[data-product]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const prodName = btn.getAttribute('data-product');
-      if (prodName) {
-        requirementInput.value = `Enquiry for ${prodName}`;
-      }
+      if (prodName && productInput) productInput.value = prodName;
     });
+  });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitEnquiry(form, submitBtn);
   });
 }
 
-// Real Netlify contact form submission
-if (form) {
-  form.addEventListener('submit', async (event) => {
+/* ---- Product detail enquiry modal ---- */
+const enquiryModal = document.getElementById('enquiryModal');
+const modalForm = document.getElementById('modalForm');
+const modalSubmitBtn = document.getElementById('modalSubmitBtn');
+
+function openEnquiryModal(prefillProduct) {
+  if (!enquiryModal) return;
+  const productField = enquiryModal.querySelector('input[name="product"]');
+  if (productField && prefillProduct) productField.value = prefillProduct;
+  enquiryModal.removeAttribute('hidden');
+  document.body.classList.add('modal-open');
+  const first = enquiryModal.querySelector('input[name="name"]');
+  if (first) first.focus();
+}
+
+function closeEnquiryModal() {
+  if (!enquiryModal) return;
+  enquiryModal.setAttribute('hidden', '');
+  document.body.classList.remove('modal-open');
+}
+
+document.getElementById('enquiryModalClose')?.addEventListener('click', closeEnquiryModal);
+
+enquiryModal?.addEventListener('click', (e) => {
+  if (e.target === enquiryModal) closeEnquiryModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && enquiryModal && !enquiryModal.hasAttribute('hidden')) closeEnquiryModal();
+});
+
+/* Mobile sticky CTA opens the modal (product pages) */
+document.getElementById('mobileEnquiryCta')?.addEventListener('click', (e) => {
+  const detailBtn = document.getElementById('detailEnquireBtn');
+  if (detailBtn) {
+    e.preventDefault();
+    detailBtn.click();
+  }
+});
+
+/* Auto-open modal when arriving with ?enquire=1 (from card "Enquire" buttons) */
+window.addEventListener('DOMContentLoaded', () => {
+  if (new URLSearchParams(window.location.search).get('enquire') === '1') {
+    const detailBtn = document.getElementById('detailEnquireBtn');
+    const productName = document.querySelector('.product-detail-title')?.textContent.trim();
+    if (detailBtn) detailBtn.click();
+    else if (productName) openEnquiryModal(productName);
+  }
+});
+
+if (modalForm) {
+  modalForm.addEventListener('submit', (event) => {
     event.preventDefault();
-
-    // Validation check
-    const nameVal = nameInput ? nameInput.value.trim() : '';
-    const emailVal = emailInput ? emailInput.value.trim() : '';
-
-    if (!nameVal) {
-      showToast('Please enter your name.', true);
-      nameInput?.focus();
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailVal || !emailRegex.test(emailVal)) {
-      showToast('Please enter a valid work email address.', true);
-      emailInput?.focus();
-      return;
-    }
-
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '<span>Send enquiry</span> <span>↗</span>';
-
-    // Prevent duplicate submissions & show loading state
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>Sending enquiry...</span> <span class="spinner" aria-hidden="true">⏳</span>';
-    }
-
-    try {
-      const payload = {
-        name: nameVal,
-        email: emailVal,
-        requirement: requirementInput ? requirementInput.value.trim() : '',
-        message: form.querySelector('textarea[name="message"]')?.value.trim() || '',
-        'bot-field': form.querySelector('input[name="bot-field"]')?.value || ''
-      };
-
-      let response;
-      try {
-        response = await fetch('/api/contact', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-      } catch (fetchErr) {
-        response = await fetch('/.netlify/functions/contact', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-      }
-
-      if (response && response.status === 404) {
-        response = await fetch('/.netlify/functions/contact', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-      }
-
-      const resData = await response.json().catch(() => null);
-
-      if (response.ok && resData && resData.success) {
-        showToast(resData.message || 'Thank you! Your enquiry has been received. We will be in touch soon.', false);
-        form.reset();
-      } else {
-        const errorMsg = (resData && resData.error) ? resData.error : `Submission error (${response.status}). Please email info@theteagroimpex.com directly.`;
-        throw new Error(errorMsg);
-      }
-    } catch (err) {
-      console.error('Contact form submission error:', err);
-      showToast(err.message || 'Unable to submit enquiry right now. Please email info@theteagroimpex.com directly.', true);
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnHtml;
-      }
-    }
+    submitEnquiry(modalForm, modalSubmitBtn, closeEnquiryModal);
   });
 }
