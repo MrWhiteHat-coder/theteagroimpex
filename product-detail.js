@@ -75,6 +75,21 @@
   });
   document.head.appendChild(ld);
 
+  /* ---------------- BreadcrumbList structured data ---------------- */
+  const bcLd = document.createElement('script');
+  bcLd.type = 'application/ld+json';
+  bcLd.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL + '/' },
+      { '@type': 'ListItem', position: 2, name: 'Products', item: SITE_URL + '/products' },
+      { '@type': 'ListItem', position: 3, name: product.category, item: `${SITE_URL}/products?category=${encodeURIComponent(product.category)}` },
+      { '@type': 'ListItem', position: 4, name: product.name, item: canonical }
+    ]
+  });
+  document.head.appendChild(bcLd);
+
   /* ---------------- Gallery (main image + thumbnails) ---------------- */
   const gallery = [product.image];
   if (product.thumb && product.thumb !== product.image) gallery.push(product.thumb);

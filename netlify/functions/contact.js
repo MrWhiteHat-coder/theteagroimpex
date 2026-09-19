@@ -325,13 +325,16 @@ Delivered To: ${toEmail}
     throw new Error('No email provider configured. Set SMTP_HOST, SMTP_PORT, SMTP_USERNAME and SMTP_PASSWORD (or an API provider key).');
 
   } catch (deliveryError) {
+    // Log full details server-side; expose only a safe diagnostic code to the client
     console.error('Email transmission failed:', deliveryError);
+    const diagCode = deliveryError && (deliveryError.code || deliveryError.responseCode) || 'SEND_FAILED';
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
-        error: 'We couldn\'t send your enquiry right now. Please try again or contact our team directly.'
+        error: 'We couldn\'t send your enquiry right now. Please try again or contact our team directly.',
+        diag: String(diagCode)
       })
     };
   }
