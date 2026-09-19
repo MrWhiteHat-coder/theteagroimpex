@@ -331,6 +331,10 @@ Delivered To: ${toEmail}
     // SMTP server response text (e.g. "535 5.7.8 Authentication Credentials Invalid")
     // helps pinpoint auth issues without exposing any secrets.
     const smtpResponse = (deliveryError && deliveryError.response) || '';
+    // Show which credentials the function is ACTUALLY using (never the password)
+    const diagUser = process.env.SMTP_USERNAME || process.env.SMTP_USER || '(unset)';
+    const diagHost = process.env.SMTP_HOST || '(unset)';
+    const diagPort = process.env.SMTP_PORT || '(unset)';
     return {
       statusCode: 500,
       headers,
@@ -338,7 +342,8 @@ Delivered To: ${toEmail}
         success: false,
         error: 'We couldn\'t send your enquiry right now. Please try again or contact our team directly.',
         diag: String(diagCode),
-        smtp: String(smtpResponse).slice(0, 120)
+        smtp: String(smtpResponse).slice(0, 120),
+        using: `${diagUser} @ ${diagHost}:${diagPort}`
       })
     };
   }
