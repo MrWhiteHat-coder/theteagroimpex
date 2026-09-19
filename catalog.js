@@ -115,10 +115,18 @@
     catalogMeta.textContent = statusText;
   }
 
-  // Deep link support: products.html?category=Rice
+  // Deep link support: products.html?category=Rice and products.html?q=onion
+  // (?q= powers the Google sitelinks SearchAction — see index.html WebSite schema)
   if (grid) {
-    const urlCategory = new URLSearchParams(window.location.search).get('category');
+    const params = new URLSearchParams(window.location.search);
+    const urlCategory = params.get('category');
     if (urlCategory && CATEGORIES.includes(urlCategory)) currentCategory = urlCategory;
+    const urlQuery = params.get('q');
+    if (urlQuery) {
+      searchQuery = urlQuery;
+      if (searchInput) searchInput.value = urlQuery;
+      if (clearSearchBtn) clearSearchBtn.removeAttribute('hidden');
+    }
   }
 
   if (searchInput) {
