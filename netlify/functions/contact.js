@@ -22,13 +22,50 @@ function escapeHtml(str) {
 
 const CONTACT_RECEIVER_DEFAULT = 'support@theteagroimpex.in';
 
+/*
+  Basic abuse protection (no external deps, works within a warm Lambda container):
+  - CORS limited to the production origins that actually use this API
+  - per-IP rate limit: 6 enquiries per 10 minutes
+  - field length caps on everything before it reaches the email template
+*/
+const ALLOWED_ORIGINS = [
+  'https://theteagroimpex.in',
+  'https://www.theteagroimpex.in',
+  'http://localhost:3000',
+  'http://localhost:4173'
+];
+
+const RATE_LIMIT_MAX = 6;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const hits = new Map(); // ip -> [timestamps]
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const list = (hits.get(ip) || []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  if (list.length >= RATE_LIMIT_MAX) {
+    hits.set(ip, list);
+    return true;
+  }
+  list.push(now);
+  hits.set(ip, list);
+  return false;
+}
+
+function cap(value, max) {
+  return String(value || '').trim().slice(0, max);
+}
+
 exports.handler = async (event) => {
+  const origin = event.headers.origin || event.headers.Origin || '';
   const headers = {
-    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Accept',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Content-Type': 'application/json'
   };
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+    headers.Vary = 'Origin';
+  }
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
@@ -39,6 +76,15 @@ exports.handler = async (event) => {
       statusCode: 405,
       headers,
       body: JSON.stringify({ success: false, error: 'Method Not Allowed. Use POST.' })
+    };
+  }
+
+  const ip = (event.headers['x-forwarded-for'] || event.headers['X-Forwarded-For'] || '').split(',')[0].trim() || 'unknown';
+  if (isRateLimited(ip)) {
+    return {
+      statusCode: 429,
+      headers,
+      body: JSON.stringify({ success: false, error: 'Too many enquiries from this connection. Please try again later or email us directly.' })
     };
   }
 
@@ -68,14 +114,17 @@ exports.handler = async (event) => {
     };
   }
 
-  const name = (data.name || '').trim();
-  const company = (data.company || '').trim();
-  const email = (data.email || '').trim();
-  const phone = (data.phone || '').trim();
-  const product = (data.product || '').trim();
-  const requirement = (data.requirement || '').trim();
-  const message = (data.message || '').trim();
-  const sourcePage = (data.sourcePage || '').trim();
+  const name = cap(data.name, 100);
+  const company = cap(data.company, 150);
+  const email = cap(data.email, 200);
+  const phone = cap(data.phone, 30);
+  const product = cap(data.product, 150);
+  const requirement = cap(data.requirement, 200);
+  const destination = cap(data.destination, 80);
+  const packaging = cap(data.packaging, 150);
+  const deliveryDate = cap(data.deliveryDate, 80);
+  const message = cap(data.message, 2000);
+  const sourcePage = cap(data.sourcePage, 300);
 
   if (!name || name.length < 2) {
     return {
@@ -110,6 +159,9 @@ Email: ${email}
 Phone: ${phone || '-'}
 Product: ${product || 'General enquiry'}
 Requirement / Quantity: ${requirement || '-'}
+Destination Country: ${destination || '-'}
+Packaging Preference: ${packaging || '-'}
+Required Delivery Date: ${deliveryDate || '-'}
 Message:
 ${message || '-'}
 
@@ -125,7 +177,10 @@ Delivered To: ${toEmail}
     ['Email', `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>`],
     ['Phone', phone ? `<a href="tel:${escapeHtml(phone)}">${escapeHtml(phone)}</a>` : '-'],
     ['Product', escapeHtml(product || 'General enquiry')],
-    ['Requirement / Quantity', escapeHtml(requirement || '-')]
+    ['Requirement / Quantity', escapeHtml(requirement || '-')],
+    ['Destination Country', escapeHtml(destination || '-')],
+    ['Packaging Preference', escapeHtml(packaging || '-')],
+    ['Required Delivery Date', escapeHtml(deliveryDate || '-')]
   ];
 
   const htmlBody = `

@@ -128,6 +128,10 @@
 
           <div class="product-detail-actions">
             <button type="button" class="button button-lime" id="detailEnquireBtn">Enquire Now <span>↗</span></button>
+            <a class="button button-outline-dark detail-wa-btn" target="_blank" rel="noopener" aria-label="Enquire about ${product.name} on WhatsApp" href="https://wa.me/917378781899?text=${encodeURIComponent('Hi Thete Agro Impex, I would like to enquire about ' + product.name + '.')}">
+              <svg viewBox="0 0 24 24" aria-hidden="true" class="wa-icon"><path d="M20.5 3.5A11 11 0 0 0 3.2 17.4L2 22l4.7-1.2A11 11 0 1 0 20.5 3.5Zm-8.4 17a9 9 0 0 1-4.6-1.3l-.3-.2-2.8.7.8-2.7-.2-.3A9 9 0 1 1 12.1 20.5Zm5-6.7c-.3-.1-1.6-.8-1.9-.9s-.5-.1-.7.1-.8.9-.9 1.1-.3.2-.6.1a7.4 7.4 0 0 1-2.2-1.3 8 8 0 0 1-1.5-1.9c-.2-.3 0-.5.1-.6s.3-.3.4-.5.1-.3 0-.5-.7-1.7-1-2.3-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4a3.3 3.3 0 0 0-1 2.4 5.7 5.7 0 0 0 1.2 3 13 13 0 0 0 5 4.4c.7.3 1.2.4 1.7.5a4 4 0 0 0 1.8-.1 3 3 0 0 0 2-1.4 2.5 2.5 0 0 0 .2-1.4c-.1-.2-.3-.2-.6-.3Z"/></svg>
+              WhatsApp Enquiry
+            </a>
             <a class="text-link" href="products.html">Back to catalogue <span>→</span></a>
           </div>
         </div>

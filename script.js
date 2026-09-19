@@ -130,6 +130,9 @@ async function submitEnquiry(form, submitBtn, onSuccess) {
     phone: form.querySelector('input[name="phone"]')?.value.trim() || '',
     product: form.querySelector('input[name="product"]')?.value.trim() || '',
     requirement: form.querySelector('input[name="requirement"]')?.value.trim() || '',
+    destination: form.querySelector('input[name="destination"]')?.value.trim() || '',
+    packaging: form.querySelector('input[name="packaging"]')?.value.trim() || '',
+    deliveryDate: form.querySelector('input[name="deliveryDate"]')?.value.trim() || '',
     message: form.querySelector('textarea[name="message"]')?.value.trim() || '',
     'bot-field': form.querySelector('input[name="bot-field"]')?.value || '',
     sourcePage: window.location.href

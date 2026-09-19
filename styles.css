@@ -19,6 +19,8 @@
 
 html { scroll-behavior: smooth; }
 body { background: var(--cream); color: var(--ink); font-family: var(--sans); line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+img { max-width: 100%; }
+.product-photo, .product-gallery-main { background-color: var(--line); } /* graceful placeholder while images load */
 a { color: inherit; text-decoration: none; }
 button, input, textarea { font: inherit; }
 button { cursor: pointer; }
@@ -449,6 +451,39 @@ body.modal-open { overflow: hidden; }
 /* ---------- Mobile sticky enquiry CTA ---------- */
 .mobile-cta { align-items: center; background: var(--leaf); bottom: 0; color: var(--forest-deep); display: none; font-size: 13px; font-weight: 700; justify-content: center; left: 0; letter-spacing: .04em; padding: 16px; position: fixed; right: 0; text-align: center; z-index: 90; }
 
+/* ---------- Built for Bulk Buyers ---------- */
+.bulk-section { background: var(--cream); padding: 110px 0; }
+.bulk-heading-row { align-items: flex-start; }
+.bulk-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); margin-top: 56px; }
+.bulk-item { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 26px 24px; transition: transform .25s, box-shadow .25s, border-color .25s; }
+.bulk-item:hover { border-color: #b5c99c; box-shadow: var(--shadow); transform: translateY(-4px); }
+.bulk-num { color: var(--forest-soft); font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+.bulk-item h3 { color: var(--forest); font-size: 19px; margin: 12px 0 8px; }
+.bulk-item p { color: var(--muted); font-size: 12.5px; line-height: 1.65; }
+
+/* ---------- Three-column form row ---------- */
+.form-row-three { grid-template-columns: repeat(3, 1fr); }
+
+/* ---------- WhatsApp button on product detail ---------- */
+.detail-wa-btn { border-radius: 100px; font-size: 13px; font-weight: 700; gap: 10px; padding: 15px 20px 15px 17px; }
+.detail-wa-btn .wa-icon { fill: #25d366; height: 19px; width: 19px; }
+
+/* ---------- 404 page ---------- */
+.notfound-body { background: var(--forest); min-height: 100vh; }
+.notfound-wrap { align-items: flex-start; color: var(--paper); display: flex; flex-direction: column; justify-content: center; margin: 0 auto; max-width: 640px; min-height: 100vh; padding: 60px 24px; }
+.notfound-logo .logo-wordmark { color: var(--paper); }
+.notfound-logo .logo-wordmark b { color: var(--leaf); }
+.notfound-code { color: rgba(217, 237, 157, .25); font-family: var(--serif); font-size: clamp(110px, 24vw, 190px); letter-spacing: -.06em; line-height: .9; margin: 36px 0 6px; }
+.notfound-wrap h1 { color: var(--paper); font-size: clamp(34px, 5.4vw, 54px); max-width: 520px; }
+.notfound-sub { color: rgba(232, 239, 226, .65); font-size: 15px; line-height: 1.7; margin: 18px 0 34px; }
+.notfound-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 22px; }
+.notfound-help { border-top: 1px solid rgba(232, 239, 226, .15); color: rgba(232, 239, 226, .55); font-size: 13px; line-height: 1.7; margin-top: 48px; padding-top: 22px; }
+.notfound-help a { color: var(--leaf-bright); font-weight: 700; }
+@media (max-width: 680px) {
+  .notfound-actions { gap: 16px; }
+  .notfound-code { margin-top: 26px; }
+}
+
 /* Responsive for new sections */
 @media (max-width: 900px) {
   .product-detail-grid { gap: 34px; grid-template-columns: 1fr; }
@@ -467,6 +502,18 @@ body.modal-open { overflow: hidden; }
   .modal-panel { max-width: 100%; padding: 24px 18px; }
   .mobile-cta { display: flex; }
   .whatsapp-btn { bottom: 74px; }
+  .form-row-three { grid-template-columns: 1fr; }
+  .bulk-grid { gap: 14px; grid-template-columns: 1fr; }
+  .detail-wa-btn { flex: 1 1 100%; justify-content: center; }
+}
+
+/* Mobile: horizontally scrollable category chips with edge fade */
+@media (max-width: 680px) {
+  .category-filters { -webkit-overflow-scrolling: touch; flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: none; width: 100%; }
+  .category-filters::-webkit-scrollbar { display: none; }
+  .filter-btn { flex-shrink: 0; min-height: 44px; white-space: nowrap; }
+  .catalog-filters-wrap { align-items: stretch; flex-direction: column; }
+  .contact-card, .menu-btn, .top-btn, .filter-btn, .clear-search-btn { min-height: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

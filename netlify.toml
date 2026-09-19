@@ -65,8 +65,8 @@
   to = "/product.html"
   status = 200
 
-# Force trailing-slash variants like /products/basmati-rice/ to resolve too
+# Branded 404 for everything else (single-page, no-linkrot friendly)
 [[redirects]]
-  from = "/products/:slug/"
-  to = "/product.html"
-  status = 200
+  from = "/*"
+  to = "/404.html"
+  status = 404

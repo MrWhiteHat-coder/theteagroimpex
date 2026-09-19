@@ -74,7 +74,7 @@ const server = http.createServer(async (req, res) => {
   fs.stat(filePath, (err, stats) => {
     if (err || !stats.isFile()) {
       res.writeHead(404, { 'Content-Type': 'text/html' });
-      res.end('<h1>404 Not Found</h1><p><a href="/">Back to home</a></p>');
+      fs.createReadStream(path.join(PUBLIC_DIR, '404.html')).pipe(res);
       return;
     }
 
